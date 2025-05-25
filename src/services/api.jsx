@@ -1,9 +1,10 @@
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import { getCurrentWeather, getLocation } from "./tools";
 
-// Groq API key and base URL
-export const groq = new Groq({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+// Ollama API key and base URL
+export const ollama = new OpenAI({
+  baseURL: "http://localhost:11434/v1",
+  apiKey: 'not-needed',
   dangerouslyAllowBrowser: true,
 });
  
@@ -46,10 +47,10 @@ Answer: <Suggested activities based on sunny weather that are highly specific to
 `
 
 // Groq chat completion
-export const getGroqChatCompletion = async (query) => {
+export const getOllamaChatCompletion = async (query) => {
 
-  return await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+  return await ollama.chat.completions.create({
+    model: import.meta.env.VITE_OLLAMA_MODEL,
     temperature: 0.5,
     max_tokens: 200,
 

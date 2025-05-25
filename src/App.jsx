@@ -1,21 +1,25 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
+import ollamaLogo from "./assets/ollama.svg";
 import "./App.css";
-import { getGroqChatCompletion } from "./services/api";
+import { getOllamaChatCompletion } from "./services/api";
 
 function App() {
-  const [response, setResponse] = useState(" ");
+  const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     try {
       setLoading(true);
-      const result = await getGroqChatCompletion("Please give me some ideas for activities to do this afternoon.");
+      const result = await getOllamaChatCompletion(
+        "Please give me some ideas for activities to do this afternoon. im in melaka"
+      );
+      console.log("API result:", result);
       setResponse(result.choices[0].message.content);
     } catch (error) {
       console.error("Error fetching chat completion:", error);
-      setResponse("Error fetching chat completion");
+      setResponse("Error fetching chat completion. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -23,38 +27,47 @@ function App() {
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
+      <h1>AI AGENT</h1>
+      <p style={{ 
+        fontFamily: 'Space Grotesk, sans-serif', 
+        color: '#94a3b8', 
+        fontSize: '1.2rem',
+        marginBottom: '2rem'
+      }}>
+        Powered by React and Ollama AI
+      </p>
+      
+      <div className="logo-container">
+        <a href="https://react.dev" target="_blank" rel="noopener noreferrer">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
+        <a href="https://ollama.com" target="_blank" rel="noopener noreferrer">
+          <img src={ollamaLogo} className="logo" alt="Ollama logo" />
+        </a>
       </div>
-      <h1>Vite + React</h1>
+
       <div className="card">
-        <button type="button" onClick={handleClick} disabled={loading}>
-          {loading ? "Getting suggestions..." : "Get Activity Suggestions"}
+        <button 
+          type="button" 
+          onClick={handleClick} 
+          disabled={loading}
+          className={loading ? 'loading-dots' : ''}
+        >
+          {loading ? "Processing Request" : "🚀 Generate AI Suggestions"}
         </button>
+        
         {response && (
-          <div
-            style={{
-              marginTop: "20px",
-              padding: "10px",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-            }}
-          >
-            <h3>AI Suggestions:</h3>
-            <p style={{ whiteSpace: "pre-wrap" }}>{response}</p>
+          <div className="response-container">
+            <h3>AI Oracle Recommendations</h3>
+            <p>{response}</p>
           </div>
         )}
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+      
+      <p className="info-text">
+        🔮 Harnessing decentralized AI intelligence for personalized recommendations
+        <br />
+        ⚡ Powered by local GPU acceleration for instant responses
       </p>
     </>
   );
