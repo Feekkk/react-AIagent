@@ -3,7 +3,7 @@ import { getCurrentWeather, getLocation } from "./tools";
 
 // Ollama API key and base URL
 export const ollama = new OpenAI({
-  baseURL: "http://localhost:11434/v1",
+  baseURL: import.meta.env.VITE_OLLAMA_BASE_URL,
   apiKey: 'not-needed',
   dangerouslyAllowBrowser: true,
 });
@@ -46,6 +46,41 @@ You then output:
 Answer: <Suggested activities based on sunny weather that are highly specific to New York City and surrounding areas.>
 `
 
+// Function to find and run actions
+export const findAndRunAction = async (aiText) => {
+  
+  // split text into lines
+  const lines = aiText.split("\n")
+
+  // simple regex to find action lines
+  const actionRegex = /Action:\s*(\w+):\s*(.*)/;
+
+  // look through each line for an action
+  for (let lines of lines){
+    const match = lines.match(actionRegex);
+      if (match){
+        const actionName = match[1];
+        const actionInput = match[2];
+
+        console.log(`Found action: ${actionName}`);
+        console.log(`Action input: ${actionInput}`);
+
+        // run the action
+        if (actionName === "getCurrentWeather"){
+          const result = await getCurrentWeather();
+          return `Weather: ${result}`;
+        }
+
+        if (actionName === "getLocation"){
+          const result = await getLocation();
+          return `Location: ${result}`;
+        }
+        
+      }
+    }
+  return "No action found in AI response.";
+}
+
 // Groq chat completion
 export const getOllamaChatCompletion = async (query) => {
 
@@ -65,4 +100,30 @@ export const getOllamaChatCompletion = async (query) => {
       },
     ],
   });
+};
+
+// Function to use both the chat completion and action runner
+export const getAIResponseWithActions = async (query) => {
+    // Get AI response
+    const response = await getOllamaChatCompletion(query);
+    const aiText = response.choices[0].message.content;
+    
+    console.log("AI said:", aiText);
+    
+    // Check if AI wants to do an action
+    const actionResult = await findAndRunAction(aiText);
+    
+    if (actionResult) {
+        console.log("Action result:", actionResult);
+        
+        // Send the result back to AI for final answer
+        const finalResponse = await getOllamaChatCompletion(
+            `Previous conversation: ${aiText}\n\nObservation: ${actionResult}\n\nNow give me the final answer.`
+        );
+        
+        return finalResponse.choices[0].message.content;
+    }
+    
+    // No action needed, return AI response
+    return aiText;
 };

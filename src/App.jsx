@@ -1,6 +1,5 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import ollamaLogo from "./assets/ollama.svg";
 import "./App.css";
 import { getOllamaChatCompletion } from "./services/api";
@@ -13,7 +12,7 @@ function App() {
     try {
       setLoading(true);
       const result = await getOllamaChatCompletion(
-        "Please give me some ideas for activities to do this afternoon. im in melaka"
+        "Please give me some ideas for activities to do this afternoon."
       );
       console.log("API result:", result);
       setResponse(result.choices[0].message.content);
@@ -58,7 +57,7 @@ function App() {
         
         {response && (
           <div className="response-container">
-            <h3>AI Oracle Recommendations</h3>
+            <h3>AI Recommendations</h3>
             <p>{response}</p>
           </div>
         )}
