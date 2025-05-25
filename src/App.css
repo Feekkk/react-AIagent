@@ -349,3 +349,32 @@ button:disabled {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--primary-cyan), var(--primary-green));
 }
+
+input {
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-cyan);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+label {
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+/* Enhanced button for personalized suggestions */
+button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(139, 92, 246, 0.4),
+    0 0 20px rgba(0, 212, 255, 0.3);
+}

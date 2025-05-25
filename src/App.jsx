@@ -7,18 +7,20 @@ import { getAIResponseWithActions } from "./services/api";
 function App() {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState("");
 
   const handleClick = async () => {
     try {
       setLoading(true);
-      const result = await getAIResponseWithActions(
-        "Please give me some ideas for activities to do this afternoon."
-      );
+
+      const result = await getAIResponseWithActions(userLocation || null);
       console.log("API result:", result);
       setResponse(result);
+
     } catch (error) {
       console.error("Error fetching chat completion:", error);
       setResponse("Error fetching chat completion. Please try again.");
+
     } finally {
       setLoading(false);
     }
@@ -69,6 +71,41 @@ function App() {
       </div>
 
       <div className="card">
+
+<div style={{ marginBottom: "2rem", textAlign: "left" }}>
+          <div style={{ marginBottom: "1rem" }}>
+            <label 
+              htmlFor="location" 
+              style={{ 
+                display: "block", 
+                marginBottom: "0.5rem", 
+                color: "var(--primary-cyan)",
+                fontFamily: "Space Grotesk, sans-serif",
+                fontWeight: "600"
+              }}
+            >
+              📍 Your Location (optional):
+            </label>
+            <input
+              id="location"
+              type="text"
+              value={userLocation}
+              onChange={(e) => setUserLocation(e.target.value)}
+              placeholder="e.g., Tokyo, New York, London..."
+              style={{
+                width: "100%",
+                padding: "0.8rem",
+                borderRadius: "12px",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                background: "rgba(255, 255, 255, 0.05)",
+                color: "white",
+                fontFamily: "Space Grotesk, sans-serif",
+                fontSize: "1rem"
+              }}
+            />
+          </div>
+        </div>
+
         <button
           type="button"
           onClick={handleClick}

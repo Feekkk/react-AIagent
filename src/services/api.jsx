@@ -47,8 +47,7 @@ Answer: <Suggested activities based on sunny weather that are highly specific to
 `
 
 // Function to find and run actions
-export const findAndRunAction = async (aiText) => {
-  
+export const findAndRunAction = async (aiText, userLocation = null) => {
   // split text into lines
   const lines = aiText.split("\n")
 
@@ -56,8 +55,8 @@ export const findAndRunAction = async (aiText) => {
   const actionRegex = /Action:\s*(\w+):\s*(.*)/;
 
   // look through each line for an action
-  for (let lines of lines){
-    const match = lines.match(actionRegex);
+  for (let line of lines){
+    const match = line.match(actionRegex);
       if (match){
         const actionName = match[1];
         const actionInput = match[2];
@@ -67,12 +66,14 @@ export const findAndRunAction = async (aiText) => {
 
         // run the action
         if (actionName === "getCurrentWeather"){
-          const result = await getCurrentWeather();
+          const location = actionInput !== "null" && actionInput !== "" ? actionInput : userLocation;
+          console.log(`Running getCurrentWeather for location: ${location}`);
+          const result = await getCurrentWeather(location);
           return `Weather: ${result}`;
         }
 
         if (actionName === "getLocation"){
-          const result = await getLocation();
+          const result = await getLocation(userLocation);
           return `Location: ${result}`;
         }
         
@@ -81,14 +82,17 @@ export const findAndRunAction = async (aiText) => {
   return "No action found in AI response.";
 }
 
-// Groq chat completion
-export const getOllamaChatCompletion = async (query) => {
+// Ollama chat completion
+export const getOllamaChatCompletion = async (query, userLocation = null) => {
+  let contextualQuery = query;
+  if (userLocation) {
+    contextualQuery += `\n\nUser's location: ${userLocation}`;
+  }
 
   return await ollama.chat.completions.create({
     model: import.meta.env.VITE_OLLAMA_MODEL,
     temperature: 0.5,
     max_tokens: 500,
-
     messages: [
       {
         role: "system",
@@ -96,39 +100,45 @@ export const getOllamaChatCompletion = async (query) => {
       },
       {
         role: "user",
-        content: query,
+        content: contextualQuery, // Fix: use contextualQuery instead of query
       },
     ],
   });
 };
 
 // Function to use both the chat completion and action runner
-export const getAIResponseWithActions = async (query) => {
-    // Get AI response
-    const response = await getOllamaChatCompletion(query);
-    const aiText = response.choices[0].message.content;
-    
-    console.log("AI said:", aiText);
-    
-    // Check if AI wants to do an action
-    const actionResult = await findAndRunAction(aiText);
-    
-    if (actionResult !== "No action found in AI response.") {
-        console.log("Action result:", actionResult);
-        
-        // Send the result back to AI for final answer with cleaner instructions
-        const finalResponse = await getOllamaChatCompletion(
-            `Based on this information: ${actionResult}\n\nPlease provide a clean, final answer to: "${query}"\n\nOnly provide the answer, no reasoning steps.`
-        );
-        
-        let cleanAnswer = finalResponse.choices[0].message.content;
-        
-        // Remove any remaining "Answer:" prefix
-        cleanAnswer = cleanAnswer.replace(/^Answer:\s*/i, '');
-        
-        return cleanAnswer;
-    }
-    
-    // No action needed, return AI response
-    return aiText;
+export const getAIResponseWithActions = async (userLocation) => {
+  console.log("User location:", userLocation);
+  
+  // Default query
+  const query = "Please give me some ideas for activities to do this afternoon.";
+  
+  // Get AI response
+  const response = await getOllamaChatCompletion(query, userLocation); // Fix: query instead of quer
+  const aiText = response.choices[0].message.content;
+  
+  console.log("AI said:", aiText);
+  
+  // Check if AI wants to do an action
+  const actionResult = await findAndRunAction(aiText, userLocation);
+  
+  if (actionResult !== "No action found in AI response.") {
+      console.log("Action result:", actionResult);
+      
+      // Send the result back to AI for final answer with cleaner instructions
+      const finalResponse = await getOllamaChatCompletion(
+          `Based on this information: ${actionResult}\n\nPlease provide a clean, final answer to: "${query}"\n\nOnly provide the answer, no reasoning steps.`,
+          userLocation
+      );
+      
+      let cleanAnswer = finalResponse.choices[0].message.content;
+      
+      // Remove any remaining "Answer:" prefix
+      cleanAnswer = cleanAnswer.replace(/^Answer:\s*/i, '');
+      
+      return cleanAnswer;
+  }
+  
+  // No action needed, return AI response
+  return aiText;
 };
