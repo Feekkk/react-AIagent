@@ -87,7 +87,7 @@ export const getOllamaChatCompletion = async (query) => {
   return await ollama.chat.completions.create({
     model: import.meta.env.VITE_OLLAMA_MODEL,
     temperature: 0.5,
-    max_tokens: 200,
+    max_tokens: 500,
 
     messages: [
       {
@@ -113,15 +113,20 @@ export const getAIResponseWithActions = async (query) => {
     // Check if AI wants to do an action
     const actionResult = await findAndRunAction(aiText);
     
-    if (actionResult) {
+    if (actionResult !== "No action found in AI response.") {
         console.log("Action result:", actionResult);
         
-        // Send the result back to AI for final answer
+        // Send the result back to AI for final answer with cleaner instructions
         const finalResponse = await getOllamaChatCompletion(
-            `Previous conversation: ${aiText}\n\nObservation: ${actionResult}\n\nNow give me the final answer.`
+            `Based on this information: ${actionResult}\n\nPlease provide a clean, final answer to: "${query}"\n\nOnly provide the answer, no reasoning steps.`
         );
         
-        return finalResponse.choices[0].message.content;
+        let cleanAnswer = finalResponse.choices[0].message.content;
+        
+        // Remove any remaining "Answer:" prefix
+        cleanAnswer = cleanAnswer.replace(/^Answer:\s*/i, '');
+        
+        return cleanAnswer;
     }
     
     // No action needed, return AI response
