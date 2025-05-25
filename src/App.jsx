@@ -1,8 +1,8 @@
+import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { getGroqChatCompletion } from "./services/api";
-import { useState } from "react";
 
 function App() {
   const [response, setResponse] = useState(" ");
@@ -11,7 +11,7 @@ function App() {
   const handleClick = async () => {
     try {
       setLoading(true);
-      const result = await getGroqChatCompletion();
+      const result = await getGroqChatCompletion("Please give me some ideas for activities to do this afternoon.");
       setResponse(result.choices[0].message.content);
     } catch (error) {
       console.error("Error fetching chat completion:", error);
